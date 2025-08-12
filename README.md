@@ -55,8 +55,11 @@ plant_doctor/
 
 ---
 ## 📽️ Project Demo
-
-[![Plant Doctor Demo](https://img.youtube.com/vi/dInbPsSmhc4/0.jpg)](https://youtu.be/dInbPsSmhc4)
+<p align="center">
+  <a href="https://youtu.be/dInbPsSmhc4">
+    <img src="https://img.youtube.com/vi/dInbPsSmhc4/0.jpg?v=2" alt="Watch the Plant Doctor Demo" width="600">
+  </a>
+</p>
 
 ## ▶️ How to Run
 
