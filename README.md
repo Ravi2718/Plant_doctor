@@ -54,6 +54,9 @@ plant_doctor/
 ```
 
 ---
+## 📽️ Project Demo
+
+[![Plant Doctor Demo](https://img.youtube.com/vi/dInbPsSmhc4/0.jpg)](https://youtu.be/dInbPsSmhc4)
 
 ## ▶️ How to Run
 
