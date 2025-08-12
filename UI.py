@@ -1,149 +1,150 @@
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
+import sys
+import os
 import subprocess
-
-root = tk.Tk()
-root.title("Plant Doctor")
-root.configure(bg="black")
-root.geometry("700x800")
-
-# Logo
-logo_path = r"E:\SNS IT\project\plant_doctor\image\logo.png"
-logo_img = Image.open(logo_path)
-logo_img = logo_img.resize((180, 200))
-logo = ImageTk.PhotoImage(logo_img)
-
-logo_label = tk.Label(root, image=logo, bg="black")
-logo_label.pack(pady=(50, 30))
-
-# Fonts
-font_label = ("Arial", 13)
-font_entry = ("Arial", 12)
-
-form_frame = tk.Frame(root, bg="black")
-form_frame.pack(pady=10)
-
-entries = []
-
-def add_label_entry(parent, text):
-    label = tk.Label(parent, text=text, fg="white", bg="black", font=font_label, anchor="w")
-    entry = tk.Entry(parent, width=45, font=font_entry)
-    label.pack(anchor="w", padx=30, pady=(8, 2))
-    entry.pack(padx=30, pady=(0, 6))
-    entries.append(entry)
-    return entry
-
-flower_name_entry = add_label_entry(form_frame, "Name of the Flower:")
-plant_color_entry = add_label_entry(form_frame, "Plant Color:")
-plant_age_entry = add_label_entry(form_frame, "Age of the Plant (seedling, mature, etc.):")
-soil_type_entry = add_label_entry(form_frame, "Soil Type:")
-mature_level_entry = add_label_entry(form_frame, "Mature Level:")
-
-patches_label = tk.Label(form_frame, text="Any Patches:", fg="white", bg="black", font=font_label, anchor="w")
-patches_label.pack(anchor="w", padx=30, pady=(10, 2))
-
-patches_var = tk.StringVar(value="No")
-patches_frame = tk.Frame(form_frame, bg="black")
-patches_frame.pack(padx=30, pady=(0, 10))
-
-yes_radio = tk.Radiobutton(patches_frame, text="Yes", variable=patches_var, value="Yes", bg="black", fg="white", font=font_entry, selectcolor="black")
-no_radio = tk.Radiobutton(patches_frame, text="No", variable=patches_var, value="No", bg="black", fg="white", font=font_entry, selectcolor="black")
-yes_radio.pack(side="left", padx=10)
-no_radio.pack(side="left", padx=10)
-
-# Info Frame for Results
-info_frame = tk.Frame(root, bg="black")
-info_box = tk.Text(
-    info_frame,
-    bg="white",
-    font=font_entry,
-    wrap="word",
-    relief="solid",
-    bd=2,
-    height=1,
-    width=65  # Fixed width to avoid expanding sideways
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QLabel, QLineEdit, QTextEdit,
+    QPushButton, QVBoxLayout, QCheckBox
 )
-info_box.config(state='disabled')
+from PyQt5.QtGui import QPixmap, QTextCharFormat, QColor, QFont
+from PyQt5.QtCore import Qt
 
-def back_to_lobby():
-    info_frame.pack_forget()
-    form_frame.pack(pady=10)
-    submit_btn.pack(pady=20)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-back_button = tk.Button(
-    info_frame,
-    text="Back to Lobby",
-    command=back_to_lobby,
-    font=("Arial", 12, "bold"),
-    bg="gray",
-    fg="white",
-    width=20
-)
+class PlantDoctorApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("🌱 Plant Doctor")
+        self.setGeometry(300, 100, 700, 800)
 
-def submit_form():
-    form_frame.pack_forget()
-    submit_btn.pack_forget()
+        # Set black background
+        self.setStyleSheet("background-color: black; color: white;")
+        self.layout = QVBoxLayout()
+        self.layout.setAlignment(Qt.AlignTop)
+        self.setLayout(self.layout)
 
-    # Fetch the values from the entry fields and remove leading/trailing spaces
-    flower = flower_name_entry.get().strip()  # .strip() will remove extra spaces or tabs
-    color = plant_color_entry.get().strip()
-    age = plant_age_entry.get().strip()
-    soil = soil_type_entry.get().strip()
-    mature = mature_level_entry.get().strip()
-    patches = patches_var.get().strip()
+        self.init_form_ui()
 
-    try:
-        result = subprocess.run(
-            ["python", r"E:\SNS IT\project\plant_doctor\main.py", flower, color, age, soil, mature, patches],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            check=True
-        )
-        output_text = result.stdout.strip() if result.stdout else "No output from backend."
-    except subprocess.CalledProcessError as e:
-        output_text = f"[Error Running Backend]\n{e.stderr}"
-    except Exception as e:
-        output_text = f"Unexpected Error:\n{str(e)}"
+    def init_form_ui(self):
+        """Form to collect plant details."""
+        # Logo
+        logo_path = os.path.join(BASE_DIR, "image", "logo.png")
+        if os.path.exists(logo_path):
+            pixmap = QPixmap(logo_path).scaled(180, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            logo_label = QLabel()
+            logo_label.setPixmap(pixmap)
+            logo_label.setAlignment(Qt.AlignCenter)
+            self.layout.addWidget(logo_label)
+        else:
+            logo_label = QLabel("🌱 Plant Doctor")
+            logo_label.setAlignment(Qt.AlignCenter)
+            logo_label.setFont(QFont("Arial", 20, QFont.Bold))
+            self.layout.addWidget(logo_label)
 
-    info_box.config(state='normal')
-    info_box.delete("1.0", tk.END)
-    info_box.insert(tk.END, output_text)
+        # Input fields
+        self.flower_name = self.add_input("Name of the Flower:")
+        self.plant_color = self.add_input("Plant Color:")
+        self.plant_age = self.add_input("Age of the Plant (seedling, mature, etc.):")
+        self.soil_type = self.add_input("Soil Type:")
+        self.mature_level = self.add_input("Mature Level:")
 
-    # Colorful highlights
-    for tag, color in [("✅", "green"), ("⚠️", "orange"), ("❌", "red"), ("🌸", "purple"), ("💧", "blue"), ("☀️", "gold")]:
-        start = "1.0"
-        while True:
-            pos = info_box.search(tag, start, stopindex=tk.END)
-            if not pos:
-                break
-            end = f"{pos}+{len(tag)}c"
-            info_box.tag_add(tag, pos, end)
-            info_box.tag_config(tag, foreground=color)
-            start = end
+        # Checkbox for patches
+        self.patches_checkbox = QCheckBox("Patches Present?")
+        self.patches_checkbox.setFont(QFont("Arial", 12))
+        self.patches_checkbox.setStyleSheet("color: white;")
+        self.layout.addWidget(self.patches_checkbox)
 
-    info_box.config(state='disabled')
-    info_box.update_idletasks()
-    lines = int(info_box.index('end-1c').split('.')[0])
-    info_box.config(height=lines + 2)
+        # Submit button
+        submit_btn = QPushButton("Submit")
+        submit_btn.setStyleSheet("background-color: blue; color: white; font-weight: bold; font-size: 14px;")
+        submit_btn.clicked.connect(self.submit_form)
+        self.layout.addWidget(submit_btn)
 
-    info_frame.pack(pady=30)
-    info_box.pack(pady=10, padx=40, anchor="center")
-    back_button.pack(pady=10)
+    def add_input(self, label_text):
+        """Helper to create a label + text input."""
+        label = QLabel(label_text)
+        label.setFont(QFont("Arial", 12))
+        label.setStyleSheet("color: white;")
+        entry = QLineEdit()
+        entry.setFont(QFont("Arial", 12))
+        self.layout.addWidget(label)
+        self.layout.addWidget(entry)
+        return entry
 
-submit_btn = tk.Button(root, text="Submit", bg="blue", fg="white", font=("Arial", 14, "bold"), width=20, command=submit_form)
-submit_btn.pack(pady=20)
+    def submit_form(self):
+        """Runs main.py and shows results."""
+        flower = self.flower_name.text().strip()
+        color = self.plant_color.text().strip()
+        age = self.plant_age.text().strip()
+        soil = self.soil_type.text().strip()
+        mature = self.mature_level.text().strip()
+        patches = "Yes" if self.patches_checkbox.isChecked() else "No"
 
-# Enter key navigation
-def focus_next(event, idx):
-    if idx + 1 < len(entries):
-        entries[idx + 1].focus()
-    else:
-        yes_radio.focus()
+        main_py_path = os.path.join(BASE_DIR, "main.py")
 
-for i, entry in enumerate(entries):
-    entry.bind("<Return>", lambda e, idx=i: focus_next(e, idx))
+        try:
+            result = subprocess.run(
+                ["python", main_py_path, flower, color, age, soil, mature, patches],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=True
+            )
+            output_text = result.stdout.strip() if result.stdout else "No output from backend."
+        except subprocess.CalledProcessError as e:
+            output_text = f"[Error Running Backend]\n{e.stderr}"
+        except Exception as e:
+            output_text = f"Unexpected Error:\n{str(e)}"
 
-# Start
-root.mainloop()
+        self.show_result(output_text)
+
+    def show_result(self, text):
+        """Display the plant analysis results."""
+        self.clear_layout()
+
+        text_area = QTextEdit()
+        text_area.setReadOnly(True)
+        text_area.setFont(QFont("Arial", 12))
+        text_area.setText(text)
+
+        # Emoji highlighting
+        highlights = {
+            "✅": QColor("green"),
+            "⚠️": QColor("orange"),
+            "❌": QColor("red"),
+            "🌸": QColor("purple"),
+            "💧": QColor("blue"),
+            "☀️": QColor("gold")
+        }
+        cursor = text_area.textCursor()
+        for emoji, color in highlights.items():
+            cursor.setPosition(0)
+            while cursor.find(emoji):
+                fmt = QTextCharFormat()
+                fmt.setForeground(color)
+                cursor.mergeCharFormat(fmt)
+
+        self.layout.addWidget(text_area)
+
+        back_btn = QPushButton("Back to Lobby")
+        back_btn.setStyleSheet("background-color: gray; color: white; font-weight: bold;")
+        back_btn.clicked.connect(self.reset_form)
+        self.layout.addWidget(back_btn)
+
+    def reset_form(self):
+        """Reset to the form view."""
+        self.clear_layout()
+        self.init_form_ui()
+
+    def clear_layout(self):
+        """Clear all widgets from the layout."""
+        while self.layout.count():
+            child = self.layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = PlantDoctorApp()
+    window.show()
+    sys.exit(app.exec_())
